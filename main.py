@@ -1,46 +1,30 @@
 import pandas as pd
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+
 import model_data
 
-jumlah_penumpang = int(input("Masukkan Jumlah barang: "))
-data_barang = []
 
-for i in range(jumlah_penumpang):
-    length = float(input(f"Masukkan panjang untuk barang {i + 1}: "))
-    width = float(input(f"Masukkan lebar untuk barang {i + 1}: "))
-    height = float(input(f"Masukkan tinggi untuk barang {i + 1}: "))
-    type_backpack = int(input(f"Apakah barang {i + 1} adalah tas ransel? (1 untuk ya, 0 untuk tidak): "))
-    type_duffel = int(input(f"Apakah barang {i + 1} adalah tas duffel? (1 untuk ya, 0 untuk tidak): "))
-    type_suitcase = int(input(f"Apakah barang {i + 1} adalah koper? (1 untuk ya, 0 untuk tidak): "))
-    volume = length * width * height
+app = Flask(__name__)
+CORS(app)
+@app.route('/predict_weight', methods=['POST'])
+def predict_weight():
+    data = request.json
+    new_luggage = pd.DataFrame(data)
+    new_luggage = new_luggage[model_data.X_train.columns]  # Make sure columns match the training data
+    weight_predictions = model_data.model.predict(new_luggage)
+    total_weight = sum(weight_predictions)
+    response = {'total_weight': total_weight, 'weights': []}
+    for i, weight in enumerate(weight_predictions):
+        response['weights'].append({'barang': i + 1, 'weight': weight})
     
-    data_barang.append({
-        'length': length,
-        'width': width,
-        'height': height,
-        'type_backpack': type_backpack,
-        'type_duffel': type_duffel,
-        'type_suitcase': type_suitcase,
-        'volume': volume
-    })
+    max_weight_plane = 200 #kg
+    if total_weight > max_weight_plane:
+        response['status'] = "Beban melebihi ketentuan"
+    else:
+        response['status'] = "Beban dibawah ketentuan dan pesawat boleh terbang"
+    
+    return jsonify(response)
 
-new_luggage = pd.DataFrame(data_barang)
-
-# Assuming X_train contains the same columns as the features used in training the model
-# Replace X_train.columns with the appropriate column names from your training set
-new_luggage = new_luggage[model_data.X_train.columns]
-
-weight_predictions = model_data.model.predict(new_luggage)
-
-for i, weight in enumerate(weight_predictions):
-    print(f'Predicted weight for barang {i + 1}: {weight} kg')
-
-total_weight = sum(weight_predictions)
-
-print(f'Total predicted weight for {jumlah_penumpang} passengers: {total_weight} kg')
-
-
-max_weight_plane = 200 #kg
-if total_weight > max_weight_plane:
-    print(f"Beban melebihi ketentuan")
-else:
-    print(f"Beban dibawah ketentuan dan pesawat boleh terbang")
+if __name__ == '__main__':
+    app.run(debug=True)
