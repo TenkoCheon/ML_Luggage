@@ -10,6 +10,8 @@ CORS(app)
 @app.route('/predict_weight', methods=['POST'])
 def predict_weight():
     data = request.json
+    if data is None:
+        return jsonify({'error': 'No JSON data received'}), 400
     new_luggage = pd.DataFrame(data)
     new_luggage = new_luggage[model_data.X_train.columns]  # Make sure columns match the training data
     weight_predictions = model_data.model.predict(new_luggage)
@@ -26,7 +28,7 @@ def predict_weight():
         response["status"] = "diterima"
         response['pesan'] = "Beban dibawah ketentuan dan pesawat boleh terbang"
     
-    return jsonify(response)
+    return jsonify(response),200
 
 if __name__ == '__main__':
     app.run(debug=True)
