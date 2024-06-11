@@ -20,9 +20,11 @@ def predict_weight():
     
     max_weight_plane = 200 #kg
     if total_weight > max_weight_plane:
-        response['status'] = "Beban melebihi ketentuan"
+        response["status"] = "ditolak"
+        response['pesan'] = "Beban melebihi ketentuan"
     else:
-        response['status'] = "Beban dibawah ketentuan dan pesawat boleh terbang"
+        response["status"] = "diterima"
+        response['pesan'] = "Beban dibawah ketentuan dan pesawat boleh terbang"
     
     return jsonify(response)
 
