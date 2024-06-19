@@ -7,6 +7,11 @@ import model_data
 
 app = Flask(__name__)
 CORS(app)
+
+@app.route('/')
+def hello():
+    return "Hello, All!"
+
 @app.route('/predict_weight', methods=['POST'])
 def predict_weight():
     data = request.json
