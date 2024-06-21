@@ -1,4 +1,5 @@
 # ignore venv
+venv
 .venv
 
 # ignore sklearn

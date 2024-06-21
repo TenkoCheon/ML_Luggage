@@ -7,9 +7,16 @@ import model_data
 
 app = Flask(__name__)
 CORS(app)
+
+@app.route('/')
+def hello():
+    return "Hello, All!"
+
 @app.route('/predict_weight', methods=['POST'])
 def predict_weight():
     data = request.json
+    if data is None:
+        return jsonify({'error': 'No JSON data received'}), 400
     new_luggage = pd.DataFrame(data)
     new_luggage = new_luggage[model_data.X_train.columns]  # Make sure columns match the training data
     weight_predictions = model_data.model.predict(new_luggage)
@@ -20,11 +27,13 @@ def predict_weight():
     
     max_weight_plane = 200 #kg
     if total_weight > max_weight_plane:
-        response['status'] = "Beban melebihi ketentuan"
+        response["status"] = "ditolak"
+        response['pesan'] = "Beban melebihi ketentuan"
     else:
-        response['status'] = "Beban dibawah ketentuan dan pesawat boleh terbang"
+        response["status"] = "diterima"
+        response['pesan'] = "Beban dibawah ketentuan dan pesawat boleh terbang"
     
-    return jsonify(response)
+    return jsonify(response),200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
